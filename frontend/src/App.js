@@ -24,7 +24,7 @@ function App() {
   const [workouts, setWorkouts] = useState([]);
   const [weights, setWeights] = useState([]);
 
-  const API_BASE = "http://localhost:3001";
+  const API_BASE = "https://fitness-tracker-t55t.onrender.com";
 
   const selectedUser = useMemo(
     () => users.find((user) => String(user.id) === String(userId)),
