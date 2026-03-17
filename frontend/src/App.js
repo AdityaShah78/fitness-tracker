@@ -28,6 +28,9 @@ function App() {
   const [workouts, setWorkouts] = useState([]);
   const [weights, setWeights] = useState([]);
 
+  const [editingWorkoutId, setEditingWorkoutId] = useState(null);
+  const [editingWeightId, setEditingWeightId] = useState(null);
+
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingWorkouts, setLoadingWorkouts] = useState(false);
   const [loadingWeights, setLoadingWeights] = useState(false);
@@ -220,6 +223,50 @@ function App() {
       fetchWeights(userId);
     } catch (err) {
       setError(err.message || "Error creating weight entry");
+    }
+  };
+
+  const handleUpdateWorkout = async (id, updatedWorkout) => {
+    clearAlerts();
+
+    try {
+      const res = await fetch(`${API_BASE}/workouts/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedWorkout),
+      });
+
+      if (!res.ok) throw new Error("Could not update workout");
+
+      setMessage("Workout updated");
+      setEditingWorkoutId(null);
+      fetchWorkouts(userId);
+    } catch (err) {
+      setError(err.message || "Error updating workout");
+    }
+  };
+
+  const handleUpdateWeight = async (id, updatedWeight) => {
+    clearAlerts();
+
+    try {
+      const res = await fetch(`${API_BASE}/weights/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedWeight),
+      });
+
+      if (!res.ok) throw new Error("Could not update weight");
+
+      setMessage("Weight entry updated");
+      setEditingWeightId(null);
+      fetchWeights(userId);
+    } catch (err) {
+      setError(err.message || "Error updating weight");
     }
   };
 
@@ -475,26 +522,86 @@ function App() {
               </span>
             </div>
             {loadingWorkouts ? (
-              <p className="muted">Loading workouts...</p>
+              <p className="muted">⏳ Loading workouts...</p>
             ) : workouts.length === 0 ? (
               <p className="muted">No workouts yet.</p>
             ) : (
               <ul className="list">
                 {workouts.map((workout) => (
                   <li key={workout.id} className="list-item">
-                    <div>
-                      <strong>{workout.workout_type}</strong>
-                      <p>
-                        {workout.duration} min · {workout.notes || "No notes"} ·{" "}
-                        {new Date(workout.workout_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <button
-                      className="danger-btn"
-                      onClick={() => handleDeleteWorkout(workout.id)}
-                    >
-                      Delete
-                    </button>
+                    {editingWorkoutId === workout.id ? (
+                      <div className="form" style={{ width: "100%" }}>
+                        <input
+                          type="text"
+                          defaultValue={workout.workout_type}
+                          onChange={(e) =>
+                            (workout.workout_type = e.target.value)
+                          }
+                        />
+                        <input
+                          type="number"
+                          defaultValue={workout.duration}
+                          onChange={(e) => (workout.duration = e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          defaultValue={workout.notes}
+                          onChange={(e) => (workout.notes = e.target.value)}
+                        />
+                        <input
+                          type="date"
+                          defaultValue={workout.workout_date?.slice(0, 10)}
+                          onChange={(e) =>
+                            (workout.workout_date = e.target.value)
+                          }
+                        />
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            onClick={() =>
+                              handleUpdateWorkout(workout.id, workout)
+                            }
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="danger-btn"
+                            onClick={() => setEditingWorkoutId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <strong>{workout.workout_type}</strong>
+                          <p>
+                            {workout.duration} min ·{" "}
+                            {workout.notes || "No notes"} ·{" "}
+                            {new Date(
+                              workout.workout_date,
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            onClick={() => setEditingWorkoutId(workout.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="danger-btn"
+                            onClick={() => {
+                              if (window.confirm("Delete this workout?")) {
+                                handleDeleteWorkout(workout.id);
+                              }
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -509,23 +616,65 @@ function App() {
               </span>
             </div>
             {loadingWeights ? (
-              <p className="muted">Loading weight history...</p>
+              <p className="muted">⏳ Loading weight history...</p>
             ) : weights.length === 0 ? (
               <p className="muted">No weight entries yet.</p>
             ) : (
               <ul className="list">
                 {weights.map((entry) => (
                   <li key={entry.id} className="list-item">
-                    <div>
-                      <strong>{entry.weight} lbs</strong>
-                      <p>{new Date(entry.entry_date).toLocaleDateString()}</p>
-                    </div>
-                    <button
-                      className="danger-btn"
-                      onClick={() => handleDeleteWeight(entry.id)}
-                    >
-                      Delete
-                    </button>
+                    {editingWeightId === entry.id ? (
+                      <div className="form" style={{ width: "100%" }}>
+                        <input
+                          type="number"
+                          step="0.1"
+                          defaultValue={entry.weight}
+                          onChange={(e) => (entry.weight = e.target.value)}
+                        />
+                        <input
+                          type="date"
+                          defaultValue={entry.entry_date?.slice(0, 10)}
+                          onChange={(e) => (entry.entry_date = e.target.value)}
+                        />
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            onClick={() => handleUpdateWeight(entry.id, entry)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="danger-btn"
+                            onClick={() => setEditingWeightId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <strong>{entry.weight} lbs</strong>
+                          <p>
+                            {new Date(entry.entry_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button onClick={() => setEditingWeightId(entry.id)}>
+                            Edit
+                          </button>
+                          <button
+                            className="danger-btn"
+                            onClick={() => {
+                              if (window.confirm("Delete this weight entry?")) {
+                                handleDeleteWeight(entry.id);
+                              }
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -533,7 +682,9 @@ function App() {
           </div>
         </section>
 
-        {loadingUsers && <p className="muted footer-note">Loading users...</p>}
+        {loadingUsers && (
+          <p className="muted footer-note">⏳ Loading users...</p>
+        )}
       </main>
     </div>
   );
