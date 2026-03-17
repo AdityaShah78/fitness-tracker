@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 function App() {
@@ -31,19 +31,22 @@ function App() {
     [users, userId],
   );
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/users`);
       const data = await res.json();
       setUsers(data);
 
-      if (!userId && data.length > 0) {
-        setUserId(String(data[0].id));
-      }
+      setUserId((prevUserId) => {
+        if (!prevUserId && data.length > 0) {
+          return String(data[0].id);
+        }
+        return prevUserId;
+      });
     } catch (err) {
       console.error("Error fetching users:", err);
     }
-  };
+  }, [API_BASE]);
 
   const fetchWorkouts = async (selectedUserId) => {
     if (!selectedUserId) {
@@ -77,8 +80,7 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchUsers]);
 
   useEffect(() => {
     if (userId) {
