@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 
 const app = express(); // 🔥 MUST be before any routes
 
+app.use(cors());
+app.use(express.json());
+
 app.post("/auth/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -91,9 +94,6 @@ app.post("/auth/login", async (req, res) => {
     res.status(500).json({ message: "Error logging in" });
   }
 });
-
-app.use(cors());
-app.use(express.json());
 
 // TEST ROUTE
 app.get("/", async (req, res) => {
