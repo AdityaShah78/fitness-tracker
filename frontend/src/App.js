@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
+import Auth from "./Auth";
 import {
   LineChart,
   Line,
@@ -12,6 +13,7 @@ import {
 
 function App() {
   const [userId, setUserId] = useState("");
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
   const [userForm, setUserForm] = useState({ name: "", email: "" });
   const [workoutForm, setWorkoutForm] = useState({
     workout_type: "",
@@ -132,11 +134,11 @@ function App() {
   }, [fetchUsers]);
 
   useEffect(() => {
-    if (userId) {
-      fetchWorkouts(userId);
-      fetchWeights(userId);
+    if (user?.id) {
+      fetchWorkouts(user.id);
+      fetchWeights(user.id);
     }
-  }, [userId]);
+  }, [user]);
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
@@ -173,7 +175,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: Number(userId),
+          user_id: user.id,
           workout_type: workoutForm.workout_type,
           duration: Number(workoutForm.duration),
           notes: workoutForm.notes,
@@ -191,7 +193,7 @@ function App() {
       });
 
       setMessage("Workout added");
-      fetchWorkouts(userId);
+      fetchWorkouts(user.id);
     } catch (err) {
       setError(err.message || "Error creating workout");
     }
@@ -206,7 +208,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: Number(userId),
+          user_id: user.id,
           weight: Number(weightForm.weight),
           entry_date: weightForm.entry_date,
         }),
@@ -220,7 +222,7 @@ function App() {
       });
 
       setMessage("Weight entry added");
-      fetchWeights(userId);
+      fetchWeights(user.id);
     } catch (err) {
       setError(err.message || "Error creating weight entry");
     }
@@ -242,7 +244,7 @@ function App() {
 
       setMessage("Workout updated");
       setEditingWorkoutId(null);
-      fetchWorkouts(userId);
+      fetchWorkouts(user.id);
     } catch (err) {
       setError(err.message || "Error updating workout");
     }
@@ -264,7 +266,7 @@ function App() {
 
       setMessage("Weight entry updated");
       setEditingWeightId(null);
-      fetchWeights(userId);
+      fetchWeights(user.id);
     } catch (err) {
       setError(err.message || "Error updating weight");
     }
@@ -281,7 +283,7 @@ function App() {
       if (!res.ok) throw new Error("Could not delete workout");
 
       setMessage("Workout deleted");
-      fetchWorkouts(userId);
+      fetchWorkouts(user.id);
     } catch (err) {
       setError(err.message || "Error deleting workout");
     }
@@ -298,7 +300,7 @@ function App() {
       if (!res.ok) throw new Error("Could not delete weight entry");
 
       setMessage("Weight entry deleted");
-      fetchWeights(userId);
+      fetchWeights(user.id);
     } catch (err) {
       setError(err.message || "Error deleting weight entry");
     }
@@ -310,35 +312,22 @@ function App() {
     0,
   );
 
+  if (!user) {
+    return <Auth setUser={setUser} />;
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div>
           <h1 className="brand">FitTrack</h1>
-          <p className="sidebar-text">Your fitness dashboard</p>
+          <p className="sidebar-text">Personal fitness dashboard</p>
         </div>
 
         <div className="sidebar-card">
-          <p className="sidebar-label">Selected User</p>
-          <h3>{selectedUser ? selectedUser.name : "No user selected"}</h3>
-          <p className="sidebar-text">
-            {selectedUser ? selectedUser.email : "Create a user to begin"}
-          </p>
-        </div>
-
-        <div className="sidebar-card">
-          <label className="field-label">Choose User</label>
-          <select
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            className="select"
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.email})
-              </option>
-            ))}
-          </select>
+          <p className="sidebar-label">Logged In As</p>
+          <h3>{user ? user.name : "No user"}</h3>
+          <p className="sidebar-text">{user ? user.email : "Please log in"}</p>
         </div>
       </aside>
 
@@ -346,9 +335,23 @@ function App() {
         <header className="hero">
           <div>
             <p className="eyebrow">Fitness Tracker</p>
-            <h2>Track workouts, weight, and progress in one place</h2>
+            <h2>
+              Welcome back, {user.name} 👋 <br />
+              Track workouts, weight, and progress in one place
+            </h2>
           </div>
-          <div className="hero-badge">Live App</div>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <div className="hero-badge">Live App</div>
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                setUser(null);
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </header>
 
         {message && <div className="alert success">{message}</div>}
@@ -357,7 +360,7 @@ function App() {
         <section className="stats-grid">
           <div className="stat-card">
             <span>Total Users</span>
-            <strong>{users.length}</strong>
+            <strong>{user ? 1 : 0}</strong>
           </div>
           <div className="stat-card">
             <span>Total Workouts</span>
@@ -374,31 +377,6 @@ function App() {
         </section>
 
         <section className="content-grid">
-          <div className="card">
-            <h3>Create User</h3>
-            <form onSubmit={handleCreateUser} className="form">
-              <input
-                type="text"
-                placeholder="Name"
-                value={userForm.name}
-                onChange={(e) =>
-                  setUserForm({ ...userForm, name: e.target.value })
-                }
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={userForm.email}
-                onChange={(e) =>
-                  setUserForm({ ...userForm, email: e.target.value })
-                }
-                required
-              />
-              <button type="submit">Create User</button>
-            </form>
-          </div>
-
           <div className="card">
             <h3>Add Workout</h3>
             <form onSubmit={handleCreateWorkout} className="form">
@@ -524,7 +502,9 @@ function App() {
             {loadingWorkouts ? (
               <p className="muted">⏳ Loading workouts...</p>
             ) : workouts.length === 0 ? (
-              <p className="muted">No workouts yet.</p>
+              <p className="muted">
+                No workouts yet. Start by adding your first one 💪
+              </p>
             ) : (
               <ul className="list">
                 {workouts.map((workout) => (
@@ -618,7 +598,9 @@ function App() {
             {loadingWeights ? (
               <p className="muted">⏳ Loading weight history...</p>
             ) : weights.length === 0 ? (
-              <p className="muted">No weight entries yet.</p>
+              <p className="muted">
+                No weight entries yet. Log your first weight 📉
+              </p>
             ) : (
               <ul className="list">
                 {weights.map((entry) => (
