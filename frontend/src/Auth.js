@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
+import Toast from "./Toast";
 
 const API = "https://fitness-tracker-t55t.onrender.com";
 
@@ -11,27 +12,55 @@ function Auth({ setUser }) {
     password: "",
   });
 
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const endpoint = isLogin ? "/auth/login" : "/auth/signup";
 
-    const res = await fetch(API + endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch(API + endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-    } else {
-      alert(data.message || "Authentication failed");
+      if (data.token) {
+        setToast({
+          message: "Welcome 🎉",
+          type: "success",
+        });
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        setTimeout(() => {
+          setUser(data.user);
+        }, 500);
+      } else {
+        setToast({
+          message: data.message || "Authentication failed",
+          type: "error",
+        });
+
+        setTimeout(() => setToast(null), 3000);
+      }
+    } catch (err) {
+      setToast({
+        message: "Something went wrong",
+        type: "error",
+      });
+
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,6 +94,7 @@ function Auth({ setUser }) {
             placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+            autoFocus
             required
           />
 
@@ -76,7 +106,9 @@ function Auth({ setUser }) {
             required
           />
 
-          <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>
+          <button type="submit">
+            {loading ? "Loading..." : isLogin ? "Login" : "Sign Up"}
+          </button>
         </form>
 
         <p className="auth-switch">
@@ -86,6 +118,7 @@ function Auth({ setUser }) {
           </button>
         </p>
       </div>
+      <Toast message={toast?.message} type={toast?.type} />
     </div>
   );
 }

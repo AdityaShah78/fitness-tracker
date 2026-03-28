@@ -343,13 +343,14 @@ function App() {
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
             <div className="hero-badge">Live App</div>
             <button
+              className="logout-btn"
               onClick={() => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 setUser(null);
               }}
             >
-              Logout
+              Logout →
             </button>
           </div>
         </header>
@@ -359,7 +360,7 @@ function App() {
 
         <section className="stats-grid">
           <div className="stat-card">
-            <span>Total Users</span>
+            <span>Active User</span>
             <strong>{user ? 1 : 0}</strong>
           </div>
           <div className="stat-card">
@@ -367,7 +368,7 @@ function App() {
             <strong>{workouts.length}</strong>
           </div>
           <div className="stat-card">
-            <span>Total Minutes</span>
+            <span>Workout Minutes</span>
             <strong>{totalWorkoutMinutes}</strong>
           </div>
           <div className="stat-card">
