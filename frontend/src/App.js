@@ -12,9 +12,7 @@ import {
 } from "recharts";
 
 function App() {
-  const [userId, setUserId] = useState("");
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-  const [userForm, setUserForm] = useState({ name: "", email: "" });
   const [workoutForm, setWorkoutForm] = useState({
     workout_type: "",
     duration: "",
@@ -41,11 +39,6 @@ function App() {
 
   const API_BASE = "https://fitness-tracker-t55t.onrender.com";
 
-  const selectedUser = useMemo(
-    () => users.find((user) => String(user.id) === String(userId)),
-    [users, userId],
-  );
-
   const chartData = useMemo(() => {
     return [...weights]
       .slice()
@@ -71,13 +64,6 @@ function App() {
 
       const data = await res.json();
       setUsers(data);
-
-      setUserId((prevUserId) => {
-        if (!prevUserId && data.length > 0) {
-          return String(data[0].id);
-        }
-        return prevUserId;
-      });
     } catch (err) {
       setError(err.message || "Error fetching users");
     } finally {
@@ -139,32 +125,6 @@ function App() {
       fetchWeights(user.id);
     }
   }, [user]);
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    clearAlerts();
-
-    try {
-      const res = await fetch(`${API_BASE}/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userForm),
-      });
-
-      if (!res.ok) throw new Error("Could not create user");
-
-      const data = await res.json();
-      setUserForm({ name: "", email: "" });
-      setMessage("User created successfully");
-      await fetchUsers();
-
-      if (data.id) {
-        setUserId(String(data.id));
-      }
-    } catch (err) {
-      setError(err.message || "Error creating user");
-    }
-  };
 
   const handleCreateWorkout = async (e) => {
     e.preventDefault();
