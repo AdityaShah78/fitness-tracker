@@ -24,7 +24,7 @@ function App() {
     entry_date: "",
   });
 
-  const [users, setUsers] = useState([]);
+  const [, setUsers] = useState([]);
   const [workouts, setWorkouts] = useState([]);
   const [weights, setWeights] = useState([]);
 
