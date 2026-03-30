@@ -4,7 +4,7 @@ const pool = require("./config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const app = express(); // 🔥 MUST be before any routes
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -28,17 +28,24 @@ app.post("/auth/signup", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const result = await pool.query(
+    const accountResult = await pool.query(
       `INSERT INTO accounts (name, email, password_hash)
        VALUES ($1, $2, $3)
        RETURNING id, name, email, created_at`,
       [name, email, passwordHash],
     );
 
-    const user = result.rows[0];
+    const userResult = await pool.query(
+      `INSERT INTO users (name, email)
+       VALUES ($1, $2)
+       RETURNING id, name, email, created_at`,
+      [name, email],
+    );
+
+    const appUser = userResult.rows[0];
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: appUser.id, email: appUser.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -46,7 +53,8 @@ app.post("/auth/signup", async (req, res) => {
     res.json({
       message: "Signup successful",
       token,
-      user,
+      user: appUser,
+      account: accountResult.rows[0],
     });
   } catch (err) {
     console.error(err);
@@ -58,24 +66,36 @@ app.post("/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const result = await pool.query("SELECT * FROM accounts WHERE email = $1", [
-      email,
-    ]);
+    const accountResult = await pool.query(
+      "SELECT * FROM accounts WHERE email = $1",
+      [email],
+    );
 
-    if (result.rows.length === 0) {
+    if (accountResult.rows.length === 0) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const user = result.rows[0];
+    const account = accountResult.rows[0];
 
-    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    const passwordMatch = await bcrypt.compare(password, account.password_hash);
 
     if (!passwordMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email],
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: "User not found in app" });
+    }
+
+    const appUser = userResult.rows[0];
+
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: appUser.id, email: appUser.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -83,11 +103,7 @@ app.post("/auth/login", async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      user: appUser,
     });
   } catch (err) {
     console.error(err);

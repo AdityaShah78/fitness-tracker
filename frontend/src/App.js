@@ -69,7 +69,7 @@ function App() {
     } finally {
       setLoadingUsers(false);
     }
-  }, [API_BASE]);
+  }, []);
 
   const fetchWorkouts = async (selectedUserId) => {
     if (!selectedUserId) {
@@ -125,6 +125,17 @@ function App() {
       fetchWeights(user.id);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!message && !error) return;
+
+    const timer = setTimeout(() => {
+      setMessage("");
+      setError("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [message, error]);
 
   const handleCreateWorkout = async (e) => {
     e.preventDefault();
@@ -307,6 +318,10 @@ function App() {
               onClick={() => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
+                setMessage("");
+                setError("");
+                setWorkouts([]);
+                setWeights([]);
                 setUser(null);
               }}
             >
