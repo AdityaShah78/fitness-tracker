@@ -64,7 +64,8 @@ FitTrack is a full-stack fitness tracking web application where users can create
 ### Deployment
 
 - Vercel (Frontend)
-- Render (Backend + PostgreSQL)
+- Render (Backend API)
+- Neon (PostgreSQL Database)
 
 ---
 
@@ -179,9 +180,9 @@ npm start
 
 ## 🚀 Deployment Notes
 
-- Frontend deployed on Vercel
-- Backend deployed on Render
-- PostgreSQL database hosted on Render
+- Frontend hosted on Vercel
+- Backend hosted on Render
+- PostgreSQL database hosted on Neon
 
 ⚠️ Note:
 Render free-tier databases may expire after inactivity or trial limits.
