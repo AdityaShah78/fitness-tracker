@@ -7,7 +7,11 @@ FitTrack is a full-stack fitness tracking web application where users can create
 ## 🚀 Live Demo
 
 - 🌐 Frontend: https://fitness-tracker-apkizg5dk-adityashah78s-projects.vercel.app/
-- ⚙️ Backend API: https://fitness-tracker-t55t.onrender.com
+- ⚙️ Backend API: https://fitness-tracker-t55t.onrender.com/
+
+## 🎥 Demo Video
+
+[Watch the FitTrack demo on YouTube](https://youtu.be/2lS_uq5gzeg)
 
 ---
 
@@ -142,10 +146,14 @@ npm start
 
 ## 🔌 API Overview
 
+### Auth
+
+- `POST /auth/signup` → Register a new account
+- `POST /auth/login` → Log in and receive JWT token
+
 ### Users
 
 - `POST /users` → Create user
-- `POST /login` → Authenticate user
 - `GET /users` → Get all users
 - `GET /users/:id` → Get user by ID
 - `PUT /users/:id` → Update user
@@ -184,9 +192,7 @@ npm start
 - Backend hosted on Render
 - PostgreSQL database hosted on Neon
 
-⚠️ Note:
-Render free-tier databases may expire after inactivity or trial limits.
-For production use, upgrading or migrating to a persistent database is recommended.
+The project is fully deployed and accessible through the live frontend link above.
 
 ---
 
