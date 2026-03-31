@@ -202,7 +202,7 @@ The project is fully deployed and accessible through the live frontend link abov
 
 - Email: meaditya2003@gmail.com
 - GitHub: https://github.com/AdityaShah78
-- LinkedIn: linkedin.com/in/aditya-shah-d78
+- LinkedIn: https://linkedin.com/in/aditya-shah-d78
 
 ---
 
