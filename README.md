@@ -15,15 +15,15 @@ FitTrack is a full-stack fitness tracking web application where users can create
 
 ### Dashboard
 
-![Dashboard](./frontend/public/screenshots/dashboard.png)
+![Dashboard](./screenshots/dashboard.png)
 
 ### Forms
 
-![Forms](./frontend/public/screenshots/forms.png)
+![Forms](./screenshots/forms.png)
 
 ### Data View
 
-![Data](./frontend/public/screenshots/data.png)
+![Data](./screenshots/data.png)
 
 ---
 
